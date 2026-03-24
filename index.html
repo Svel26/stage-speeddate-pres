@@ -839,6 +839,15 @@
                 }
             }
         });
+
+        // Vooruit met klikken overal op het scherm (gebruiksvriendelijke presentatiebediening)
+        document.addEventListener("click", () => {
+            if (currentStep < maxSteps && !isAnimating) {
+                currentStep++;
+                isAnimating = true;
+                tl.tweenTo(`step${currentStep}`, { onComplete: () => { isAnimating = false; } });
+            }
+        });
     </script>
 </body>
 
