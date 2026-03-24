@@ -35,7 +35,7 @@
         }
     </script>
     <style>
-        /* Schakel native web-scrolling volledig uit */
+        /* Basisopmaak: full-screen presentatie zonder browser-scroll */
         body,
         html {
             margin: 0;
@@ -662,7 +662,9 @@
 
     <script>
         // ============================================================
-        // SETUP: Positioneer alle slides individueel offscreen
+        // SETUP: Initializeer slide startposities en basale zichtbaarheid
+        //   - Iedere slide wordt vooraf gepositioneerd zodat de animatie-route
+        //     tussen slides voorspelbaar en soepel is
         // ============================================================
         const D = 1;       // standaard transitieduur
         const EASE_IN = "power3.inOut";
@@ -683,11 +685,14 @@
         gsap.set("#plc-line", { opacity: 0, scaleY: 0 });
 
         // Helper: maak slide zichtbaar/onzichtbaar
+        //  - Deze helpers manipuleren alleen visibility;
+        //    animatie-positie wordt door GSAP timelines afgehandeld.
         function show(id) { gsap.set(id, { visibility: "visible" }); }
         function hide(id) { gsap.set(id, { visibility: "hidden" }); }
 
         // ============================================================
-        // TIJDLIJN
+        // TIJDLIJN (GSAP)
+        //   Elke stap is een label met transitions die het gedrag per slide bepalen
         // ============================================================
         const tl = gsap.timeline({ paused: true });
 
@@ -774,7 +779,10 @@
         tl.addLabel("step10");
 
         // ============================================================
-        // BEDIENING
+        // BEDIENING (toetsenbord + klik)
+        //   - Space/Right/Down: vooruit
+        //   - Left/Up: achteruit
+        //   - Klik overal: vooruit
         // ============================================================
 
         // Welke slide hoort zichtbaar te zijn na elke stap
@@ -786,8 +794,9 @@
         const ALL_SLIDES = ["#slide-1", "#slide-2", "#slide-3", "#slide-4", "#slide-5", "#slide-6"];
 
         // Snap de tijdlijn naar het einde van stap N en herstel zichtbaarheid handmatig.
-        // We zoeken naar net vóór het volgende label (= alle animaties van stap N zijn klaar),
-        // met suppressEvents=true zodat call()-callbacks niet opnieuw vuren.
+        // Implementatie details:
+        //  - tl.seek() zorgt dat de animatie in de juiste eindtoestand komt zonder extra callbacks.
+        //  - De actieve slide wordt zichtbaar en alle anderen worden verborgen.
         function snapToStep(step) {
             const nextLabel = `step${step + 1}`;
             const seekTime = (tl.labels[nextLabel] !== undefined)
