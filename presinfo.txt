@@ -1,0 +1,51 @@
+Jouw expert in
+software voor
+verpakkingen
+Stage Software Development
+Presentatie door: Sven Jansen
+Locatie: Reusel, Nederland
+
+Ontwikkelaar en producent van hoogwaardige verpakkingslijnen en palletiseersystemen.
+Sinds 2021 zijn wij trots onderdeel van de internationale Duravantgroep.
+Wij kennen een typisch Kempische cultuur: korte lijnen, no-nonsense, hard werken én veel gezelligheid.
+Groot voordeel: Engineering en mechanische bouw zitten samen onder één dak.
+Je ziet als software engineer direct wat jouw code doet op de machines in onze hal in Reusel.
+Over Votech
+
+Ons Team
+Ongeveer 35 gedreven technici in diverse disciplines. Wij werken met een directe en nauwe samenwerking tussen software engineers en mechanische monteurs.
+Praktijkbegeleider
+SD begeleiding door John Habraken en de rest van het team van zeer ervaren Software Engineers.
+Vaste Structuur
+Elke maandagochtend starten we met een company "meetup", direct gevolgd door een effectieve stand-up met de volledige software afdeling.
+Collega's & Begeleiding
+
+Software Development
+Het dagelijks schrijven, grondig verbeteren en structureel documenteren van code voor onze complexe industriële besturingssystemen.
+Live Testen
+Nieuwe software functionaliteiten worden direct getest in de fysieke productieomgeving. Dit gebeurt op onze hoofdlocatie in Reusel of zelfs bij klanten over heel de wereld.
+Integratie
+Het analytisch benaderen en optimaliseren van softwarematige integraties. Hierbij werk je intensief met PLC-programmering en elektrotechnische schema's.
+Dagelijkse Routine
+
+De Huidige Opdracht
+Ontwikkeling van een web-based HMI 
+ (Human Machine Interface) voor het configureren van palletiseersystemen.
+Doel: Een modern drag & drop mechanisme creëren op een industrieel touchscreen.
+Functionaliteit: Operators leggen visueel zakken op het scherm neer om een stapelpatroon te vormen.
+Integratie: De visueel gegenereerde data wordt direct en veilig opgeslagen naar de PLC.
+Resultaat: De robot leest de coördinaten uit en voert het patroon fysiek foutloos uit.
+
+Tips
+Stage lopen bij ons?
+Portfolio: Zorg dat je tijdens een gesprek logisch nadenken en een gedegen code-structuur kunt aantonen.
+Interesse: Toon bij bedrijven als Votech interesse in de complete fysieke machine, en niet alleen in de software.
+Proactief: Wacht nooit af; toon initiatief, loop de montagehal in en praat met de mechanische engineers.
+Wij bieden een uitdagende stage met veel eigen verantwoordelijkheid.
+Je ontvangt een standaard, marktconforme stagevergoeding van €300 bruto.
+Heb je interesse? Neem dan contact op met Danique Pijnenborg (HR Manager).
+Solliciteer direct voor de volgende periode via hr@votech.com.
+Stage Tips & Vacature
+
+Vragen?
+Zijn er nog vragen over de opdracht of Votech?

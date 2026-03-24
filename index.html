@@ -1,0 +1,846 @@
+<!DOCTYPE html>
+<html lang="nl">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Stage Software Development - Votech</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Enkel de core GSAP library is nog nodig -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+
+    <!-- Premium Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@500;700;900&display=swap"
+        rel="stylesheet">
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        votechRed: '#E52029',
+                        votechDark: '#1A202C',
+                        votechGrey: '#F8F9FA'
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                        display: ['Space Grotesk', 'sans-serif']
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        /* Schakel native web-scrolling volledig uit */
+        body,
+        html {
+            margin: 0;
+            padding: 0;
+            width: 100vw;
+            height: 100vh;
+            overflow: hidden;
+            background-color: #ffffff;
+            color: #333333;
+            cursor: none;
+            /* Verberg cursor tijdens presentatie */
+        }
+
+        /* Slides zijn individueel gepositioneerd zodat elke transitie uniek kan zijn */
+        #presentation-wrapper {
+            position: relative;
+            width: 100vw;
+            height: 100vh;
+        }
+
+        .slide {
+            width: 100vw;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            position: absolute;
+            top: 0;
+            left: 0;
+            padding: 2rem 1.5rem;
+            box-sizing: border-box;
+            visibility: hidden;
+        }
+
+        @media (min-width: 768px) {
+            .slide {
+                padding: 4rem 2rem;
+            }
+        }
+
+        /* Slide-1 is de enige die direct zichtbaar is */
+        #slide-1 {
+            visibility: visible;
+        }
+
+        .votech-title-underline::after {
+            content: '';
+            display: block;
+            width: 60px;
+            height: 4px;
+            background-color: #E52029;
+            margin: 20px 0 0;
+        }
+
+        .votech-title-underline-center::after {
+            content: '';
+            display: block;
+            width: 60px;
+            height: 4px;
+            background-color: #E52029;
+            margin: 20px auto 0;
+        }
+
+        @keyframes kenburns {
+            0% {
+                transform: scale(1);
+            }
+
+            100% {
+                transform: scale(1.05);
+            }
+        }
+
+        /* Prevent flashing before GSAP takes over */
+        .gsap-reveal {
+            opacity: 0;
+            transform: translateY(30px);
+        }
+
+        /* ---- Slide 6: Vragen ---- */
+        #slide-6 {
+            background: #E52029;
+            overflow: hidden;
+        }
+
+        /* Decoratief rasterpatroon op de achtergrond */
+        #slide-6::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background-image:
+                linear-gradient(rgba(255, 255, 255, 0.06) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(255, 255, 255, 0.06) 1px, transparent 1px);
+            background-size: 60px 60px;
+            pointer-events: none;
+        }
+
+        /* Pulserende ringen gecentreerd achter de '?' */
+        .vragen-ring {
+            position: absolute;
+            left: 50%;
+            top: 50%;
+            transform: translate(-50%, -50%);
+            border-radius: 50%;
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            animation: ringPulse 4s ease-out infinite;
+        }
+
+        .vragen-ring:nth-child(1) {
+            width: 340px;
+            height: 340px;
+            animation-delay: 0s;
+        }
+
+        .vragen-ring:nth-child(2) {
+            width: 560px;
+            height: 560px;
+            animation-delay: 0.8s;
+        }
+
+        .vragen-ring:nth-child(3) {
+            width: 780px;
+            height: 780px;
+            animation-delay: 1.6s;
+        }
+
+        .vragen-ring:nth-child(4) {
+            width: 1000px;
+            height: 1000px;
+            animation-delay: 2.4s;
+        }
+
+        @keyframes ringPulse {
+            0% {
+                opacity: 0;
+                transform: translate(-50%, -50%) scale(0.85);
+            }
+
+            30% {
+                opacity: 1;
+            }
+
+            100% {
+                opacity: 0;
+                transform: translate(-50%, -50%) scale(1.05);
+            }
+        }
+
+        /* Grote decoratieve '?' op de achtergrond */
+        .vragen-bg-q {
+            position: absolute;
+            right: -80px;
+            bottom: -60px;
+            font-size: 600px;
+            font-weight: 900;
+            line-height: 1;
+            color: rgba(0, 0, 0, 0.08);
+            font-family: 'Space Grotesk', sans-serif;
+            user-select: none;
+            pointer-events: none;
+        }
+
+        /* ---- Shared utilities ---- */
+        .slide-eyebrow {
+            font-size: 0.65rem;
+            font-weight: 700;
+            letter-spacing: 0.18em;
+            text-transform: uppercase;
+            margin-bottom: 1.25rem;
+            color: #9ca3af;
+        }
+
+        .slide-eyebrow-dark {
+            color: rgba(255, 255, 255, 0.4);
+        }
+
+        .slide-footer {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            padding: 0 3rem;
+            height: 46px;
+            display: flex;
+            align-items: center;
+            gap: 1.5rem;
+            border-top: 1px solid rgba(0, 0, 0, 0.07);
+            font-size: 0.62rem;
+            font-weight: 700;
+            letter-spacing: 0.15em;
+            text-transform: uppercase;
+            color: #9ca3af;
+            z-index: 20;
+        }
+
+        .slide-footer-dot {
+            color: #E52029;
+        }
+
+        .slide-deco-bg {
+            position: absolute;
+            font-family: 'Space Grotesk', sans-serif;
+            font-weight: 900;
+            line-height: 1;
+            user-select: none;
+            pointer-events: none;
+        }
+
+        /* Slide 1: same grid as slide 3 / 6 */
+        #slide-1 {
+            overflow: hidden;
+        }
+
+        #slide-1::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background-image:
+                linear-gradient(rgba(255, 255, 255, 0.06) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(255, 255, 255, 0.06) 1px, transparent 1px);
+            background-size: 60px 60px;
+            pointer-events: none;
+        }
+
+        /* Slide 3: same subtle grid as Vragen */
+        #slide-3 {
+            overflow: hidden;
+        }
+
+        #slide-3::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background-image:
+                linear-gradient(rgba(255, 255, 255, 0.025) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(255, 255, 255, 0.025) 1px, transparent 1px);
+            background-size: 80px 80px;
+            pointer-events: none;
+        }
+    </style>
+</head>
+
+<body class="antialiased font-sans text-gray-800">
+
+    <!-- Wrapper die alle slides bevat en als geheel verschuift -->
+    <div id="presentation-wrapper">
+
+        <!-- Slide 1: Title -->
+        <section id="slide-1" class="slide bg-votechRed">
+            <div class="container mx-auto px-4 lg:px-12 relative z-10 flex flex-col justify-center items-start h-full">
+                <div class="max-w-3xl" id="hero-content">
+                    <!-- Votech logo wit gefilterd op donkere achtergrond -->
+                    <img src="Votech_Lockup_4c.svg" alt="Votech" class="mb-6"
+                        style="height:52px;width:auto;filter:brightness(0) invert(1);">
+                    <p class="slide-eyebrow slide-eyebrow-dark">Stage Speed Date &mdash; Maart 2026</p>
+                    <h1 class="text-6xl md:text-8xl font-black mb-5 leading-none text-white">
+                        Stage<br>Software<br>Development</h1>
+                    <p class="text-lg text-white/55 mb-12 max-w-lg">Votech BV, Jouw expert in verpakkingsoplossingen!
+                    </p>
+
+                    <div class="flex items-center gap-8 pt-8 border-t border-white/20">
+                        <div>
+                            <p class="text-[10px] font-bold uppercase tracking-widest text-white/40 mb-1">Presentatie
+                                door</p>
+                            <p class="text-lg font-semibold text-white">Sven Jansen</p>
+                        </div>
+                        <div class="w-px h-8 bg-white/20"></div>
+                        <div>
+                            <p class="text-[10px] font-bold uppercase tracking-widest text-white/40 mb-1">Bedrijf</p>
+                            <p class="text-lg font-semibold text-white">Votech BV</p>
+                        </div>
+                        <div class="w-px h-8 bg-white/20"></div>
+                        <div>
+                            <p class="text-[10px] font-bold uppercase tracking-widest text-white/40 mb-1">Locatie</p>
+                            <p class="text-lg font-semibold text-white">Reusel, NL</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Slide 2: Over Votech -->
+        <section id="slide-2" class="slide bg-white">
+            <div class="container mx-auto px-4 lg:px-12">
+                <div class="grid grid-cols-1 lg:grid-cols-12 gap-16 items-center">
+
+
+                    <div class="lg:col-span-5 gsap-reveal">
+                        <p class="slide-eyebrow">02 &mdash; Bedrijfsprofiel</p>
+                        <h2 class="font-display text-5xl font-black text-gray-900 votech-title-underline mb-10">Over
+                            Votech &amp; de Cultuur</h2>
+                        <p class="text-xl text-gray-600 leading-relaxed mb-8">
+                            Ontwikkelaar en producent van hoogwaardige verpakkingslijnen en palletiseersystemen. Sinds
+                            2021 trots onderdeel van de internationale <strong>Duravant-groep</strong>.
+                        </p>
+                        <div class="bg-votechGrey p-6 border-l-4 border-votechRed text-gray-700 font-medium">
+                            Kempische cultuur: korte lijnen, no-nonsense, hard werken én veel gezelligheid.
+                        </div>
+                    </div>
+
+                    <div class="lg:col-span-7 grid grid-cols-1 md:grid-cols-2 gap-8">
+                        <div class="gsap-reveal">
+                            <div
+                                class="bg-white border border-gray-100 shadow-lg p-8 rounded-xl h-full relative overflow-hidden">
+                                <div
+                                    class="absolute -top-2 -right-1 font-display font-black text-[90px] leading-none text-gray-900/[0.05] select-none">
+                                    01</div>
+                                <i class="fa-solid fa-users-gear text-3xl text-votechRed mb-4 block relative z-10"></i>
+                                <h3 class="font-display text-xl font-bold mb-3 relative z-10">Het Team</h3>
+                                <p class="text-gray-600 leading-relaxed text-sm relative z-10">Ongeveer 35 gedreven
+                                    technici in
+                                    diverse disciplines. Directe samenwerking tussen software engineers en mechanische
+                                    engineers onder &eacute;&eacute;n dak.</p>
+                            </div>
+                        </div>
+
+                        <div class="gsap-reveal">
+                            <div
+                                class="bg-white border border-gray-100 shadow-lg p-8 rounded-xl h-full relative overflow-hidden">
+                                <div
+                                    class="absolute -top-2 -right-1 font-display font-black text-[90px] leading-none text-gray-900/[0.05] select-none">
+                                    02</div>
+                                <i
+                                    class="fa-solid fa-chalkboard-user text-3xl text-votechRed mb-4 block relative z-10"></i>
+                                <h3 class="font-display text-xl font-bold mb-3 relative z-10">Begeleiding</h3>
+                                <p class="text-gray-600 leading-relaxed text-sm relative z-10">Begeleiding door John
+                                    Habraken en ervaren Software Engineers. Vaste structuur met maandelijkse "meetups"
+                                    en effectieve stand-ups.</p>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </section>
+
+        <!-- Slide 3: De Opdracht -->
+        <section id="slide-3" class="slide bg-gray-900">
+            <div
+                class="container mx-auto px-4 lg:px-12 flex flex-col md:flex-row items-center justify-center md:justify-between h-auto md:h-full relative gap-8 md:gap-0">
+
+                <!-- Tekst Content Container -->
+                <div class="w-full md:w-5/12 relative h-[120px] md:h-[250px] flex items-center z-20">
+                    <!-- Intro -->
+                    <div class="absolute w-full" id="scroll-text-1">
+                        <h2 class="font-display text-sm font-bold text-votechRed tracking-widest uppercase mb-4">De
+                            Huidige Opdracht</h2>
+                        <h3 class="font-display text-5xl font-black text-white leading-tight mb-6">Web-based HMI
+                            Innovatie</h3>
+                        <p class="text-2xl text-gray-400">Ontwikkeling van een interface voor het configureren van
+                            complexe palletiseersystemen.</p>
+                    </div>
+
+                    <!-- Step 1 -->
+                    <div class="absolute w-full" id="scroll-text-2">
+                        <h3 class="text-4xl font-black text-white mb-2">Visuele Configuratie</h3>
+                        <div class="w-12 h-1 bg-votechRed mb-6"></div>
+                        <p class="text-xl text-gray-400">Een modern drag-and-drop mechanisme op een industrieel
+                            touchscreen. Operators leggen visueel zakken neer om een optimaal stapelpatroon te vormen.
+                        </p>
+                    </div>
+
+                    <!-- Step 2 -->
+                    <div class="absolute w-full" id="scroll-text-3">
+                        <h3 class="text-4xl font-black text-white mb-2">PLC Integratie</h3>
+                        <div class="w-12 h-1 bg-votechRed mb-6"></div>
+                        <p class="text-xl text-gray-400">De visueel gegenereerde data wordt direct en veilig
+                            verwerkt door de PLC. Een krachtige abstractielaag tussen operator en machinelogica.</p>
+                    </div>
+
+                    <!-- Step 3 -->
+                    <div class="absolute w-full" id="scroll-text-4">
+                        <h3 class="text-4xl font-black text-white mb-2">Fysieke Uitvoering</h3>
+                        <div class="w-12 h-1 bg-votechRed mb-6"></div>
+                        <p class="text-xl text-gray-400">Resultaat: De industriële robot leest de coördinaten uit en
+                            voert het patroon fysiek, foutloos en met maximale efficiëntie uit.</p>
+                    </div>
+                </div>
+
+                <!-- Grafische weergave -->
+                <div class="w-full md:w-7/12 h-[220px] md:h-[350px] flex items-center justify-end relative z-10 transition-transform">
+                    <div class="relative w-full max-w-2xl aspect-[4/3] scale-[0.65] md:scale-90 lg:scale-100 origin-center md:origin-right">
+                        <!-- HMI Scherm -->
+                        <div class="absolute inset-0 bg-gray-800 shadow-2xl rounded-xl border border-gray-700 overflow-hidden flex flex-col"
+                            id="hmi-screen">
+                            <div class="bg-gray-950 h-10 border-b border-gray-700 flex items-center px-4">
+                                <div class="text-white text-xs font-black tracking-widest opacity-50">VOTECH HMI PANEL
+                                </div>
+                            </div>
+                            <div class="flex-1 p-8 relative bg-gray-900">
+                                <div class="w-full h-full border-2 border-dashed border-gray-700 rounded-lg flex flex-wrap gap-3 p-4 relative"
+                                    id="hmi-grid">
+                                    <div class="text-gray-600 absolute inset-0 flex items-center justify-center font-bold text-2xl uppercase tracking-widest"
+                                        id="hmi-placeholder">Drag Pattern Here</div>
+
+                                    <!-- Zakken (Blocks) -->
+                                    <div
+                                        class="w-32 h-16 bg-votechRed rounded shadow-lg flex items-center justify-center text-white/50 text-xs font-bold bag-item">
+                                        BAG 1</div>
+                                    <div
+                                        class="w-32 h-16 bg-votechRed rounded shadow-lg flex items-center justify-center text-white/50 text-xs font-bold bag-item">
+                                        BAG 2</div>
+                                    <div
+                                        class="w-32 h-16 bg-votechRed rounded shadow-lg flex items-center justify-center text-white/50 text-xs font-bold bag-item">
+                                        BAG 3</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Data lijn naar PLC (Verticaal onder het scherm) -->
+                        <div class="absolute left-1/2 bottom-[-5px] md:bottom-[-40px] -ml-0.5 w-1 h-8 md:h-20 bg-votechRed origin-top z-0"
+                            id="plc-line">
+                            <div
+                                class="absolute left-1/2 -ml-8 bottom-[-15px] md:bottom-[-32px] w-16 h-12 bg-gray-800 border-2 border-votechRed rounded flex items-center justify-center text-[10px] font-bold text-white shadow-2xl">
+                                PLC
+                                <div
+                                    class="absolute -right-2 top-1/2 -mt-1 w-2 h-2 bg-votechRed rounded-full animate-ping">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </section>
+
+        <!-- Slide 4: Dagelijkse Routine -->
+        <section id="slide-4" class="slide bg-votechGrey">
+
+            <div class="container mx-auto px-4 lg:px-12">
+                <div class="mb-14 gsap-reveal">
+                    <p class="slide-eyebrow">04 &mdash; Werkzaamheden</p>
+                    <h2 class="font-display text-5xl font-black text-gray-900 votech-title-underline">Een dag bij Votech
+                    </h2>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+                    <div class="gsap-reveal">
+                        <div
+                            class="bg-white p-8 shadow-sm rounded-2xl h-full border border-gray-100 relative overflow-hidden">
+                            <div
+                                class="absolute -top-3 -right-2 font-display font-black text-[100px] leading-none text-gray-900/[0.05] select-none">
+                                01</div>
+                            <i class="fa-solid fa-code text-3xl text-votechRed mb-5 block relative z-10"></i>
+                            <h3 class="font-display text-xl font-bold mb-3 relative z-10">Software Development</h3>
+                            <p class="text-gray-600 leading-relaxed relative z-10">Het ontwikkelen, optimaliseren en
+                                documenteren van robuuste code voor complexe industriële besturingssystemen.</p>
+                        </div>
+                    </div>
+
+                    <div class="gsap-reveal">
+                        <div
+                            class="bg-white p-8 shadow-sm rounded-2xl h-full border border-gray-100 relative overflow-hidden">
+                            <div
+                                class="absolute -top-3 -right-2 font-display font-black text-[100px] leading-none text-gray-900/[0.05] select-none">
+                                02</div>
+                            <i class="fa-solid fa-microchip text-3xl text-votechRed mb-5 block relative z-10"></i>
+                            <h3 class="font-display text-xl font-bold mb-3 relative z-10">Live Testen</h3>
+                            <p class="text-gray-600 leading-relaxed relative z-10">Nieuwe functionaliteiten direct
+                                testen in de fysieke productieomgeving. In Reusel of bij de klant.</p>
+                        </div>
+                    </div>
+
+                    <div class="gsap-reveal">
+                        <div
+                            class="bg-white p-8 shadow-sm rounded-2xl h-full border border-gray-100 relative overflow-hidden">
+                            <div
+                                class="absolute -top-3 -right-2 font-display font-black text-[100px] leading-none text-gray-900/[0.05] select-none">
+                                03</div>
+                            <i class="fa-solid fa-network-wired text-3xl text-votechRed mb-5 block relative z-10"></i>
+                            <h3 class="font-display text-xl font-bold mb-3 relative z-10">Integratie</h3>
+                            <p class="text-gray-600 leading-relaxed relative z-10">Optimaliseren van integraties.
+                                Intensief werken met PLC-programmering en elektrotechnische schema's.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Slide 5: Stage Tips & Vacature -->
+        <section id="slide-5" class="slide bg-white">
+            <div class="container mx-auto px-4 lg:px-12">
+                <div class="gsap-reveal mb-14">
+                    <p class="slide-eyebrow">05 &mdash; Stage Informatie</p>
+                    <h2 class="text-5xl font-black text-gray-900 votech-title-underline">Interesse in een stage?
+                    </h2>
+                </div>
+
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-16">
+                    <div class="gsap-reveal">
+                        <h3 class="text-3xl font-bold text-gray-800 mb-8">Drie tips voor je sollicitatie</h3>
+                        <div class="space-y-8">
+                            <div class="flex gap-6">
+                                <div class="text-4xl text-gray-300 font-black">01</div>
+                                <div>
+                                    <h4 class="text-xl font-bold text-votechRed mb-2">Portfolio</h4>
+                                    <p class="text-gray-600 text-lg">Toon aan de hand van je projecten je analytisch
+                                        vermogen en
+                                        oog voor een gedegen codestructuur.</p>
+                                </div>
+                            </div>
+                            <div class="flex gap-6">
+                                <div class="text-4xl text-gray-300 font-black">02</div>
+                                <div>
+                                    <h4 class="text-xl font-bold text-votechRed mb-2">Brede Interesse</h4>
+                                    <p class="text-gray-600 text-lg">Toon interesse in de complete fysieke machine,
+                                        en
+                                        niet uitsluitend in de software.</p>
+                                </div>
+                            </div>
+                            <div class="flex gap-6">
+                                <div class="text-4xl text-gray-300 font-black">03</div>
+                                <div>
+                                    <h4 class="text-xl font-bold text-votechRed mb-2">Proactief</h4>
+                                    <p class="text-gray-600 text-lg">Wacht nooit af; toon initiatief, loop de
+                                        montagehal
+                                        in en praat met de mechanische engineers.</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="gsap-reveal">
+                        <div
+                            class="bg-gray-900 text-white p-12 rounded-3xl shadow-2xl h-full flex flex-col justify-between">
+                            <div>
+                                <h3 class="font-display text-3xl font-bold mb-6">Wat wij bieden</h3>
+                                <ul class="space-y-4 mb-12 text-lg text-gray-300">
+                                    <li class="flex items-center gap-4">
+                                        <i class="fa-solid fa-check text-votechRed"></i> Uitdagende stage met veel
+                                        eigen
+                                        verantwoordelijkheid.
+                                    </li>
+                                    <li class="flex items-center gap-4">
+                                        <i class="fa-solid fa-check text-votechRed"></i> Marktconforme
+                                        stagevergoeding
+                                        van €300 bruto.
+                                    </li>
+                                </ul>
+                            </div>
+
+                            <div class="border-t border-gray-700 pt-8 mt-auto">
+                                <p class="text-gray-400 text-sm font-bold uppercase tracking-widest mb-4">
+                                    Solliciteer
+                                    direct</p>
+                                <p class="text-xl mb-2"><i class="fa-solid fa-user text-votechRed mr-3"></i> Danique
+                                    Pijnenborg <span class="text-gray-500 text-base">(HR Manager)</span></p>
+                                <a href="mailto:hr@votech.com" class="text-2xl font-bold flex items-center gap-3">
+                                    <i class="fa-solid fa-envelope text-votechRed"></i> hr@votech.com
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Slide 6: Vragen -->
+        <section id="slide-6" class="slide text-white">
+
+            <!-- Decoratieve ringen -->
+            <div class="vragen-ring"></div>
+            <div class="vragen-ring"></div>
+            <div class="vragen-ring"></div>
+            <div class="vragen-ring"></div>
+
+            <!-- Grote achtergrond-'?' -->
+            <div class="vragen-bg-q">?</div>
+
+            <!-- Hoofd content -->
+            <div class="container mx-auto px-4 lg:px-20 relative z-10 h-full flex flex-col justify-center">
+
+                <!-- Bovenste sectie: heading -->
+                <div id="vragen-top" class="gsap-reveal mb-16">
+                    <p class="text-sm font-bold uppercase tracking-widest text-white/50 mb-4">Einde presentatie</p>
+                    <h1 class="font-display text-[10rem] leading-none font-black tracking-tight">Vragen?</h1>
+                    <p class="text-2xl text-white/70 mt-4 max-w-xl">
+                        Over de opdracht, het team, de stage&shy;voorwaarden — stel ze gerust.
+                    </p>
+                </div>
+
+                <!-- Onderste sectie: contact + branding -->
+                <div id="vragen-bottom"
+                    class="gsap-reveal border-t border-white/20 pt-10 flex flex-col md:flex-row items-start md:items-center justify-between gap-8">
+
+                    <!-- Contactpersoon -->
+                    <div>
+                        <p class="text-xs font-bold uppercase tracking-widest text-white/50 mb-3">Presentatie door
+                        </p>
+                        <div class="flex items-center gap-4">
+                            <div class="w-12 h-12 rounded-full bg-white/20 flex items-center justify-center">
+                                <i class="fa-solid fa-user text-white text-lg"></i>
+                            </div>
+                            <div>
+                                <p class="text-2xl font-bold leading-tight">Sven Jansen</p>
+                                <p class="text-white/60 text-sm">Software Development stagaire</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- HR Contact -->
+                    <div>
+                        <p class="text-xs font-bold uppercase tracking-widest text-white/50 mb-3">Stage­informatie
+                        </p>
+                        <p class="text-lg font-semibold mb-1">
+                            <i class="fa-solid fa-user mr-2 text-white/60"></i>Danique Pijnenborg
+                            <span class="font-normal text-white/50 text-base ml-1">(HR Manager)</span>
+                        </p>
+                        <a href="mailto:hr@votech.com" class="text-lg font-bold flex items-center gap-2">
+                            <i class="fa-solid fa-envelope"></i> hr@votech.com
+                        </a>
+                    </div>
+
+                    <!-- Votech logo wit gefilterd -->
+                    <div class="text-right">
+                        <img src="Votech_Lockup_4c.svg" alt="Votech"
+                            style="height:44px;width:auto;filter:brightness(0) invert(1);opacity:0.35;">
+                    </div>
+
+                </div>
+            </div>
+        </section>
+
+    </div>
+
+    <script>
+        // ============================================================
+        // SETUP: Positioneer alle slides individueel offscreen
+        // ============================================================
+        const D = 1;       // standaard transitieduur
+        const EASE_IN = "power3.inOut";
+        const EASE_OUT = "power2.out";
+
+        // Alle slides onzichtbaar; slide-1 al in positie
+        gsap.set("#slide-1", { x: 0, y: 0, scale: 1, opacity: 1, visibility: "visible" });
+        gsap.set("#slide-2", { x: "100vw", y: 0, scale: 1, opacity: 1 }); // wacht rechts
+        gsap.set("#slide-3", { x: 0, y: "100vh", scale: 1, opacity: 1 }); // wacht onder
+        gsap.set("#slide-4", { x: 0, y: 0, scale: 1.15, opacity: 0 }); // wacht als zoomed-in
+        gsap.set("#slide-5", { x: "100vw", y: 0, scale: 1, opacity: 1 }); // wacht rechts
+        gsap.set("#slide-6", { x: 0, y: 0, scale: 0.85, opacity: 0 }); // wacht als zoomed-out
+
+        // Interne GSAP-reveal elementen
+        gsap.set(".gsap-reveal", { opacity: 0, y: 50 });
+        gsap.set(["#scroll-text-2", "#scroll-text-3", "#scroll-text-4"], { opacity: 0, y: 50 });
+        gsap.set(".bag-item", { opacity: 0, y: -50 });
+        gsap.set("#plc-line", { opacity: 0, scaleY: 0 });
+
+        // Helper: maak slide zichtbaar/onzichtbaar
+        function show(id) { gsap.set(id, { visibility: "visible" }); }
+        function hide(id) { gsap.set(id, { visibility: "hidden" }); }
+
+        // ============================================================
+        // TIJDLIJN
+        // ============================================================
+        const tl = gsap.timeline({ paused: true });
+
+        tl.addLabel("step0");
+
+        // ---- STAP 1: Hero-entry via opgave vanuit onder ----
+        tl.addLabel("step1");
+        tl.from("#hero-content", { duration: 1, y: 60, opacity: 0, ease: "power3.out" });
+
+        // ---- STAP 2: Horizontale wipe → Slide 2 (van rechts) ----
+        tl.addLabel("step2");
+        tl.call(() => show("#slide-2"))
+            // slide-1 verlaat naar links, slide-2 schuift van rechts binnen
+            .to("#slide-1", { x: "-100vw", duration: D, ease: EASE_IN }, "<")
+            .to("#slide-2", { x: 0, duration: D, ease: EASE_IN }, "<")
+            // Cards verschijnen met lichte stagger
+            .to("#slide-2 .gsap-reveal", { opacity: 1, y: 0, duration: 0.7, stagger: 0.12, ease: EASE_OUT }, "-=0.25");
+
+        // ---- STAP 3: Verticale drop ↓ → Slide 3 ----
+        tl.addLabel("step3");
+        tl.call(() => show("#slide-3"))
+            // slide-2 verlaat omhoog, slide-3 schuift van onder omhoog
+            .to("#slide-2", { y: "-100vh", duration: D, ease: EASE_IN }, "<")
+            .to("#slide-3", { y: 0, duration: D, ease: EASE_IN }, "<");
+
+        // ---- STAP 4: Slide 3 fase 2 — zakken vallen ----
+        tl.addLabel("step4");
+        tl.to("#scroll-text-1", { opacity: 0, y: -30, duration: 0.5 })
+            .to("#scroll-text-2", { opacity: 1, y: 0, duration: 0.5 }, "<")
+            .to("#hmi-placeholder", { opacity: 0, duration: 0.3 }, "<")
+            .to(".bag-item", { opacity: 1, y: 0, stagger: 0.15, duration: 0.6, ease: "back.out(1.5)" }, "<");
+
+        // ---- STAP 5: Slide 3 fase 3 — PLC lijn ----
+        tl.addLabel("step5");
+        tl.to("#scroll-text-2", { opacity: 0, y: -30, duration: 0.5 })
+            .to("#scroll-text-3", { opacity: 1, y: 0, duration: 0.5 }, "<")
+            .to("#hmi-screen", { scale: 0.9, y: -20, duration: 0.6, ease: "power2.inOut" }, "<")
+            .to("#plc-line", { opacity: 1, scaleY: 1, duration: 0.4, transformOrigin: "top center" }, "<0.3")
+            .to(".bag-item", { backgroundColor: "#10b981", duration: 0.3 }, "<");
+
+        // ---- STAP 6: Slide 3 fase 4 — robot succes ----
+        tl.addLabel("step6");
+        tl.to("#scroll-text-3", { opacity: 0, y: -30, duration: 0.5 })
+            .to("#scroll-text-4", { opacity: 1, y: 0, duration: 0.5 }, "<")
+            .to("#plc-line", { opacity: 0, duration: 0.3 }, "<")
+            .to("#hmi-grid", { borderColor: "#10b981", duration: 0.3 }, "<")
+            .to(".bag-item", {
+                backgroundColor: "#22c55e",
+                boxShadow: "0 0 20px #22c55e",
+                scale: 1.05,
+                stagger: 0.2,
+                duration: 0.4,
+                ease: "power2.out"
+            }, "<0.1");
+
+        // ---- STAP 7: Cross-fade + zoom-out → Slide 4 ----
+        tl.addLabel("step7");
+        tl.call(() => show("#slide-4"))
+            // slide-3 fades out terwijl slide-4 zoom-in vanuit 1.15 naar 1
+            .to("#slide-3", { opacity: 0, scale: 0.9, duration: D * 0.9, ease: "power2.in" }, "<")
+            .to("#slide-4", { opacity: 1, scale: 1, duration: D, ease: "power3.out" }, "<0.1")
+            .call(() => hide("#slide-3"))
+            .to("#slide-4 .gsap-reveal", { opacity: 1, y: 0, duration: 0.7, stagger: 0.1, ease: EASE_OUT }, "-=0.4");
+
+        // ---- STAP 8: Horizontale wipe ← → Slide 5 (van rechts, omgekeerde richting) ----
+        tl.addLabel("step8");
+        tl.call(() => show("#slide-5"))
+            // slide-4 verlaat naar links, slide-5 van rechts
+            .to("#slide-4", { x: "-100vw", duration: D, ease: EASE_IN }, "<")
+            .to("#slide-5", { x: 0, duration: D, ease: EASE_IN }, "<")
+            .to("#slide-5 .gsap-reveal", { opacity: 1, y: 0, duration: 0.7, stagger: 0.12, ease: EASE_OUT }, "-=0.25");
+
+        // ---- STAP 9: Scale zoom-in reveal → Slide 6 (explosie vanuit midden) ----
+        tl.addLabel("step9");
+        tl.call(() => show("#slide-6"))
+            // slide-5 krimpt weg naar het midden
+            .to("#slide-5", { opacity: 0, scale: 0.92, duration: D * 0.8, ease: "power2.in" }, "<")
+            // slide-6 explodeert vanuit klein naar vol scherm
+            .to("#slide-6", { opacity: 1, scale: 1, duration: D, ease: "expo.out" }, "<0.15")
+            .call(() => hide("#slide-5"))
+            .to("#slide-6 .gsap-reveal", { opacity: 1, y: 0, duration: 0.8, ease: EASE_OUT }, "-=0.4");
+
+        // Sluiting: sentinellabel zodat tweenTo("step10") de slide-6 animaties afspeelt
+        tl.addLabel("step10");
+
+        // ============================================================
+        // BEDIENING
+        // ============================================================
+
+        // Welke slide hoort zichtbaar te zijn na elke stap
+        const SLIDE_FOR_STEP = {
+            1: "#slide-1", 2: "#slide-2",
+            3: "#slide-3", 4: "#slide-3", 5: "#slide-3", 6: "#slide-3",
+            7: "#slide-4", 8: "#slide-5", 9: "#slide-6", 10: "#slide-6"
+        };
+        const ALL_SLIDES = ["#slide-1", "#slide-2", "#slide-3", "#slide-4", "#slide-5", "#slide-6"];
+
+        // Snap de tijdlijn naar het einde van stap N en herstel zichtbaarheid handmatig.
+        // We zoeken naar net vóór het volgende label (= alle animaties van stap N zijn klaar),
+        // met suppressEvents=true zodat call()-callbacks niet opnieuw vuren.
+        function snapToStep(step) {
+            const nextLabel = `step${step + 1}`;
+            const seekTime = (tl.labels[nextLabel] !== undefined)
+                ? tl.labels[nextLabel] - 0.001
+                : tl.duration() - 0.001;
+            tl.seek(Math.max(0, seekTime), true);
+
+            // Herstel visibility: alle slides verbergen, dan de juiste tonen
+            ALL_SLIDES.forEach(s => gsap.set(s, { visibility: "hidden" }));
+            gsap.set(SLIDE_FOR_STEP[step], { visibility: "visible" });
+        }
+
+        let currentStep = 1;
+        const maxSteps = 10;
+        let isAnimating = false;
+
+        tl.tweenTo("step1");
+
+        document.addEventListener("keydown", (e) => {
+            if (["Space", "ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight"].includes(e.code)) {
+                e.preventDefault();
+            }
+
+            // Vooruit: tweenTo speelt de animaties van de volgende stap af
+            if (e.code === "Space" || e.code === "ArrowRight" || e.code === "ArrowDown") {
+                if (currentStep < maxSteps && !isAnimating) {
+                    currentStep++;
+                    isAnimating = true;
+                    tl.tweenTo(`step${currentStep}`, { onComplete: () => { isAnimating = false; } });
+                }
+            }
+
+            // Achteruit: snel cross-fade + seek naar einde van de vorige stap
+            else if (e.code === "ArrowLeft" || e.code === "ArrowUp") {
+                if (currentStep > 1 && !isAnimating) {
+                    currentStep--;
+                    isAnimating = true;
+                    tl.pause(); // stop lopende animatie
+                    gsap.to("#presentation-wrapper", {
+                        opacity: 0, duration: 0.18, ease: "power1.in",
+                        onComplete: () => {
+                            snapToStep(currentStep);
+                            gsap.to("#presentation-wrapper", {
+                                opacity: 1, duration: 0.28,
+                                onComplete: () => { isAnimating = false; }
+                            });
+                        }
+                    });
+                }
+            }
+        });
+    </script>
+</body>
+
+</html>
